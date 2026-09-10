@@ -1,0 +1,20 @@
+# Entorno y datos persistentes
+data/
+*.log
+
+# Python y caché
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Entornos virtuales y editores
+.env
+.venv/
+env/
+.vscode/
+.idea/
+
+# Evitar subir contraseñas maestras (puedes crear un template)
+config/odoo.conf

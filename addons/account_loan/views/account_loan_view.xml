@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2018 Creu Blanca / Modified for C&G Préstamos Express -->
+<!-- License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <record id="account_loan_search" model="ir.ui.view">
+        <field name="name">account.loan.search</field>
+        <field name="model">account.loan</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Referencia" />
+                <field name="partner_id" string="Deudor" />
+                <field name="company_id" groups="base.group_multi_company" />
+                <filter name="draft" string="Borrador" domain="[('state','=','draft')]" />
+                <filter name="posted" string="Activos" domain="[('state','=','posted')]" />
+                <filter name="closed" string="Cerrados" domain="[('state','=','closed')]" />
+            </search>
+        </field>
+    </record>
+
+    <record id="account_loan_tree" model="ir.ui.view">
+        <field name="name">account.loan.tree</field>
+        <field name="model">account.loan</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" string="Referencia" />
+                <field name="partner_id" string="Deudor" />
+                <field name="method" string="Tipo" />
+                <field name="state" string="Estado" />
+                <field name="loan_amount" string="Capital" />
+                <field name="rate" string="Tasa %" />
+                <field name="pending_principal_amount" string="Capital Pendiente" sum="Total" />
+                <field name="periods" string="Cuotas" optional="hide" />
+                <field name="start_date" string="Inicio" optional="hide" />
+                <field name="company_id" groups="base.group_multi_company" optional="hide" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="account_loan_pivot" model="ir.ui.view">
+        <field name="name">account.loan.pivot</field>
+        <field name="model">account.loan</field>
+        <field name="arch" type="xml">
+            <pivot string="Préstamos">
+                <field name="partner_id" string="Deudor" type="row" />
+                <field name="loan_amount" type="measure" />
+                <field name="pending_principal_amount" type="measure" />
+            </pivot>
+        </field>
+    </record>
+
+    <record id="account_loan_form" model="ir.ui.view">
+        <field name="name">account.loan.form</field>
+        <field name="model">account.loan</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="compute_lines"
+                        type="object"
+                        string="Calcular Cuotas"
+                        invisible="state != 'draft'"
+                    />
+                    <button
+                        name="%(account_loan_post_action)d"
+                        invisible="state != 'draft'"
+                        class="oe_highlight"
+                        type="action"
+                        string="Contabilizar"
+                        groups="account.group_account_manager"
+                    />
+                    <button
+                        name="button_draft"
+                        invisible="state not in ('posted', 'cancelled') or move_count != 0"
+                        type="object"
+                        string="Volver a Borrador"
+                        groups="account.group_account_manager"
+                    />
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="draft,posted,closed" />
+                </header>
+                <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button
+                            name="view_account_moves"
+                            class="oe_stat_button"
+                            icon="fa-bars"
+                            invisible="state == 'draft'"
+                            type="object"
+                        >
+                            <field string="Asientos" name="move_count" widget="statinfo" />
+                        </button>
+                    </div>
+
+                    <h1>
+                        <field name="name" readonly="state != 'draft'" />
+                    </h1>
+
+                    <!-- Fila 1: Tipo de préstamo y montos -->
+                    <group>
+                        <group string="Configuración del Préstamo">
+                            <field name="company_id" invisible="1" />
+                            <field
+                                name="company_id"
+                                options="{'no_create': True}"
+                                readonly="state != 'draft'"
+                                groups="base.group_multi_company"
+                            />
+                            <!-- Campo principal visible: método G&C -->
+                            <field name="method" readonly="state != 'draft'" />
+                            <!-- Frecuencia: visible para Cuotas Fijas Estables y Cuota Fija (Amortización) -->
+                            <field
+                                name="payment_frequency"
+                                readonly="state != 'draft'"
+                                invisible="method == 'interest'"
+                            />
+                            <!-- loan_type técnico, oculto al usuario -->
+                            <field name="loan_type" invisible="1" />
+                            <field name="loan_amount" readonly="state != 'draft'" />
+                        </group>
+                        <group string="Tasa de Interés">
+                            <!-- rate_type solo visible para métodos clásicos -->
+                            <field
+                                name="rate_type"
+                                readonly="state != 'draft'"
+                                invisible="method == 'stable_fixed'"
+                            />
+                            <field name="rate" string="Interés Mensual (%)" />
+                            <field
+                                name="rate_period"
+                                invisible="method == 'stable_fixed'"
+                            />
+                        </group>
+                    </group>
+
+                    <!-- Fila 2: Deudor y fechas -->
+                    <group>
+                        <group string="Deudor y Fechas">
+                            <field name="partner_id" string="Deudor" readonly="state != 'draft'" />
+                            <field name="start_date" readonly="state != 'draft'" />
+                            <field name="periods" string="Número de Cuotas" readonly="state != 'draft'" />
+                            <!-- Longitud del período: solo para mensual clásico -->
+                            <field
+                                name="method_period"
+                                readonly="state != 'draft'"
+                                invisible="method == 'stable_fixed' or (method == 'fixed' and payment_frequency != 'monthly')"
+                            />
+                            <field
+                                name="payment_on_first_period"
+                                readonly="state != 'draft'"
+                            />
+                        </group>
+                        <group string="Opciones">
+                            <field
+                                name="round_on_end"
+                                readonly="state != 'draft'"
+                                invisible="method == 'stable_fixed'"
+                            />
+                            <field name="is_leasing" readonly="state != 'draft'" invisible="1" />
+                        </group>
+                    </group>
+
+                    <!-- Resumen (solo visible cuando hay asientos) -->
+                    <group string="Resumen" invisible="state == 'draft'">
+                        <group>
+                            <field name="pending_principal_amount" />
+                            <field name="payment_amount" />
+                            <field name="interests_amount" />
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Cuotas" id="items">
+                            <field
+                                name="line_ids"
+                                context="{'tree_view_ref': 'account_loan.account_loan_line_tree'}"
+                                readonly="state in ['cancelled', 'closed']"
+                            />
+                        </page>
+                        <page string="Cuentas Contables" id="accounting">
+                            <group>
+                                <group>
+                                    <field name="journal_id" readonly="state != 'draft'" />
+                                    <field name="short_term_loan_account_id" readonly="state != 'draft'" />
+                                    <field name="journal_type" invisible="1" />
+                                </group>
+                                <group>
+                                    <field name="long_term_loan_account_id" readonly="state != 'draft'" />
+                                    <field name="interest_expenses_account_id" readonly="state != 'draft'" />
+                                    <field name="currency_id" invisible="1" />
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" />
+                    <field name="activity_ids" widget="mail_activity" />
+                    <field name="message_ids" widget="mail_thread" />
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_loan_action" model="ir.actions.act_window">
+        <field name="name">Préstamos</field>
+        <field name="res_model">account.loan</field>
+        <field name="view_mode">tree,form,pivot</field>
+    </record>
+
+    <menuitem
+        id="loan_menu"
+        name="Préstamos"
+        parent="account.menu_finance"
+        sequence="75"
+    />
+
+    <menuitem
+        id="account_loan_menu"
+        parent="loan_menu"
+        sequence="10"
+        name="Préstamos"
+        action="account_loan_action"
+    />
+
+</odoo>

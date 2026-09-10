@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_gc_loans_root"
+              name="Préstamos"
+              web_icon="account_loan,static/description/icon.png"
+              sequence="10"/>
+
+    <menuitem id="account_loan.loan_menu"
+              name="Gestión de Préstamos"
+              parent="menu_gc_loans_root"
+              sequence="10"/>
+
+    <menuitem id="account_loan.account_loan_lines_menu"
+              parent="menu_gc_loans_root"
+              sequence="20"/>
+</odoo>
