@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="gc_loans.WhatsappReminderButtonField">
+        <button
+            t-if="props.record.data.send_reminder_ok"
+            type="button"
+            class="btn btn-sm btn-success mt-1"
+            t-on-click="onClick"
+            title="Recordar Pagaré"
+        >
+            <i class="fa fa-whatsapp me-1"/>Recordar Pagaré
+        </button>
+    </t>
+</templates>

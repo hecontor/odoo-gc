@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_gc_loans_whatsapp_reminder_form" model="ir.ui.view">
+        <field name="name">gc.loans.whatsapp.reminder.form</field>
+        <field name="model">gc.loans.whatsapp.reminder</field>
+        <field name="arch" type="xml">
+            <form string="Recordatorio de Pago">
+                <group>
+                    <field name="loan_line_id" invisible="1"/>
+                    <field name="partner_id"/>
+                    <field name="phone"/>
+                </group>
+                <group>
+                    <field name="message" nolabel="1"/>
+                </group>
+                <footer>
+                    <button
+                        name="action_send"
+                        string="Enviar"
+                        type="object"
+                        class="btn-primary"
+                        icon="fa-whatsapp"
+                    />
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

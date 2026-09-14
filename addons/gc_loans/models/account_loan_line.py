@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models
 
 
@@ -28,6 +30,65 @@ class AccountLoanLine(models.Model):
         related="partner_id.mobile",
         string="Celular Deudor",
     )
+    send_reminder_ok = fields.Boolean(
+        string="Puede Enviar Recordatorio",
+        compute="_compute_send_reminder_ok",
+        help="Disponible si la cuota está en mora, vence hoy, o vence mañana.",
+    )
+
+    @api.depends("payment_state", "date")
+    def _compute_send_reminder_ok(self):
+        today = fields.Date.context_today(self)
+        tomorrow = today + timedelta(days=1)
+        for line in self:
+            line.send_reminder_ok = line.payment_state == "overdue" or line.date in (
+                today,
+                tomorrow,
+            )
+
+    def _build_whatsapp_reminder_message(self):
+        self.ensure_one()
+        amount = "{:,.2f}".format(self.payment_amount)
+        currency = self.currency_id.symbol or ""
+        fecha = self.date.strftime("%d/%m/%Y") if self.date else ""
+        deudor = self.partner_id.name or ""
+        prestamo = self.loan_id.name or ""
+        if self.payment_state == "overdue":
+            return (
+                "Hola {deudor}, te recordamos que tu pago de {currency}{amount} "
+                "correspondiente al préstamo {prestamo} está vencido desde el {fecha} "
+                "({dias} días de mora). Por favor coordina tu pago a la brevedad. "
+                "Gracias.".format(
+                    deudor=deudor,
+                    currency=currency,
+                    amount=amount,
+                    prestamo=prestamo,
+                    fecha=fecha,
+                    dias=self.days_overdue,
+                )
+            )
+        return (
+            "Hola {deudor}, te recordamos que tienes un pago de {currency}{amount} "
+            "del préstamo {prestamo} programado para el {fecha}. ¡Gracias por tu "
+            "puntualidad!".format(
+                deudor=deudor,
+                currency=currency,
+                amount=amount,
+                prestamo=prestamo,
+                fecha=fecha,
+            )
+        )
+
+    def action_open_whatsapp_reminder(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Recordatorio de Pago",
+            "res_model": "gc.loans.whatsapp.reminder",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_loan_line_id": self.id},
+        }
 
     @api.depends("date", "move_ids")
     def _compute_payment_state(self):

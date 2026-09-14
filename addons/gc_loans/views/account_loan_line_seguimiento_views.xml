@@ -9,6 +9,7 @@
                 <field name="partner_id"/>
                 <field name="payment_amount"/>
                 <field name="payment_state"/>
+                <field name="send_reminder_ok" widget="gc_whatsapp_reminder_button"/>
             </calendar>
         </field>
     </record>

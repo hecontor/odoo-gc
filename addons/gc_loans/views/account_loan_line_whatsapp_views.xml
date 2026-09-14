@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Aparece en el tree de cuotas embebido en el perfil del préstamo
+         (account_loan_view.xml usa tree_view_ref=account_loan.account_loan_line_tree) -->
+    <record id="account_loan_line_tree_whatsapp_button" model="ir.ui.view">
+        <field name="name">account.loan.line.tree.whatsapp.reminder</field>
+        <field name="model">account.loan.line</field>
+        <field name="inherit_id" ref="account_loan.account_loan_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='view_process_values']" position="after">
+                <field name="send_reminder_ok" column_invisible="True"/>
+                <button
+                    name="action_open_whatsapp_reminder"
+                    string="Recordar Pagaré"
+                    type="object"
+                    icon="fa-whatsapp"
+                    invisible="not send_reminder_ok"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Aparece en el form de la cuota que se abre al hacer clic en "Editar"
+         desde el popover del calendario de seguimiento -->
+    <record id="account_loan_line_form_whatsapp_button" model="ir.ui.view">
+        <field name="name">account.loan.line.form.whatsapp.reminder</field>
+        <field name="model">account.loan.line</field>
+        <field name="inherit_id" ref="account_loan.account_loan_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[1]" position="before">
+                <field name="send_reminder_ok" invisible="1"/>
+                <button
+                    name="action_open_whatsapp_reminder"
+                    string="Recordar Pagaré"
+                    type="object"
+                    class="btn-primary"
+                    icon="fa-whatsapp"
+                    invisible="not send_reminder_ok"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
