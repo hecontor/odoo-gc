@@ -1,5 +1,5 @@
 # Entorno y datos persistentes
-data/
+#data/
 *.log
 
 # Python y caché
