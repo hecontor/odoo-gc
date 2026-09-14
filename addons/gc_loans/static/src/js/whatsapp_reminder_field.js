@@ -10,7 +10,6 @@ class WhatsappReminderButtonField extends Component {
     static props = { ...standardFieldProps };
 
     setup() {
-        this.orm = useService("orm");
         this.action = useService("action");
     }
 
@@ -19,12 +18,15 @@ class WhatsappReminderButtonField extends Component {
         // y dispare su propio comportamiento (abrir edición, cerrar, etc).
         ev.stopPropagation();
         ev.preventDefault();
-        const action = await this.orm.call(
-            "account.loan.line",
-            "action_open_whatsapp_reminder",
-            [[this.props.record.resId]]
-        );
-        this.action.doAction(action);
+        // doActionButton es el mismo servicio que usan los botones nativos
+        // type="object" — normaliza correctamente la acción devuelta por
+        // el método Python (a diferencia de llamar orm.call + doAction a mano).
+        await this.action.doActionButton({
+            resModel: "account.loan.line",
+            resId: this.props.record.resId,
+            name: "action_open_whatsapp_reminder",
+            type: "object",
+        });
     }
 }
 
