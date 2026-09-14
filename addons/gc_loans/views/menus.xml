@@ -13,4 +13,9 @@
     <menuitem id="account_loan.account_loan_lines_menu"
               parent="menu_gc_loans_root"
               sequence="20"/>
+    <menuitem id="menu_gc_loans_seguimiento"
+            name="Seguimiento de Cobros"
+            parent="menu_gc_loans_root"
+            action="action_gc_loans_seguimiento_calendar"
+            sequence="5"/>
 </odoo>

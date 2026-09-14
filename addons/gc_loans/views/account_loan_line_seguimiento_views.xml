@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_calendar_gc_loans_seguimiento" model="ir.ui.view">
+        <field name="name">account.loan.line.calendar.seguimiento</field>
+        <field name="model">account.loan.line</field>
+        <field name="arch" type="xml">
+            <!-- <calendar string="Calendario de Cobros" date_start="date" color="color" mode="month" quick_add="0"> -->
+            <calendar string="Calendario de Cobros" date_start="date" color="color" mode="month" quick_create="0">
+                <field name="partner_id"/>
+                <field name="payment_amount"/>
+                <field name="payment_state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_search_gc_loans_seguimiento" model="ir.ui.view">
+        <field name="name">account.loan.line.search.seguimiento</field>
+        <field name="model">account.loan.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id" string="Deudor"/>
+                <field name="loan_id" string="Préstamo"/>
+                <filter string="Pendientes" name="filter_pending" domain="[('payment_state','=','pending')]"/>
+                <filter string="En Mora" name="filter_overdue" domain="[('payment_state','=','overdue')]"/>
+                <filter string="Pagadas" name="filter_paid" domain="[('payment_state','=','paid')]"/>
+                <separator/>
+                <filter string="No Pagadas" name="filter_not_paid" domain="[('payment_state','!=','paid')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Deudor" name="group_partner" context="{'group_by':'partner_id'}"/>
+                    <filter string="Préstamo" name="group_loan" context="{'group_by':'loan_id'}"/>
+                    <filter string="Estado" name="group_state" context="{'group_by':'payment_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_gc_loans_seguimiento_calendar" model="ir.actions.act_window">
+        <field name="name">Seguimiento de Cobros</field>
+        <field name="res_model">account.loan.line</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="search_view_id" ref="view_search_gc_loans_seguimiento"/>
+        <field name="context">{'search_default_filter_not_paid': 1}</field>
+        <field name="domain">[('loan_state', '=', 'posted')]</field>
+    </record>
+</odoo>
